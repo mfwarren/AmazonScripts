@@ -102,14 +102,15 @@ def main():
         orders_by_day[order.order_date[:10]].append(order)
     with open("AMZ Returning vs New Customers - Daily.csv", 'w') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["Date", "Order Count", "Unique Customers", "Returning Customers", "Total Sales", "Returning Customer Sales"])
+        writer.writerow(["Date", "Order Count", "New Customers", "Returning Customers", "Unique Customers", "Repeat customers as % of toal", "Total Sales", "New Customer Sales", "Returning Customer Sales", "Returning Sales %"])
         for date, orders_list in orders_by_day.items():
             total_revenue = sum([o.cost() for o in orders_list])
             returning_revenue = sum([o.cost() for o in orders_list if o.is_returning])
+            new_customer_revenue = sum([o.cost() for o in orders_list if not o.is_returning])
             unique_customers = set([o.customer_id for o in orders_list])
             first_time_buyers = len([o for o in orders_list if not o.is_returning])
             return_buyers = len([o for o in orders_list if o.is_returning])
-            writer.writerow([date, len(orders_list), len(unique_customers), return_buyers, total_revenue, returning_revenue])
+            writer.writerow([date, len(orders_list), first_time_buyers, return_buyers, len(unique_customers), return_buyers / len(unique_customers), total_revenue, new_customer_revenue, returning_revenue, returning_revenue/total_revenue])
 
     # by month
     orders_by_month = defaultdict(list)
@@ -118,14 +119,15 @@ def main():
 
     with open("AMZ Returning vs New Customers - Monthly.csv", 'w') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["Date", "Order Count", "Unique Customers", "Returning Customers", "Total Sales", "Returning Customer Sales"])
+        writer.writerow(["Month", "Order Count", "New Customers", "Returning Customers", "Unique Customers", "Repeat customers as % of toal", "Total Sales", "New Customer Sales", "Returning Customer Sales", "Returning Sales %"])
         for month, orders_list in orders_by_month.items():
             total_revenue = sum([o.cost() for o in orders_list])
             returning_revenue = sum([o.cost() for o in orders_list if o.is_returning])
+            new_customer_revenue = sum([o.cost() for o in orders_list if not o.is_returning])
             unique_customers = set([o.customer_id for o in orders_list])
             first_time_buyers = len([o for o in orders_list if not o.is_returning])
             return_buyers = len([o for o in orders_list if o.is_returning])
-            writer.writerow([month, len(orders_list), len(unique_customers), return_buyers, total_revenue, returning_revenue])
+            writer.writerow([month, len(orders_list), first_time_buyers, return_buyers, len(unique_customers), return_buyers / len(unique_customers), total_revenue, new_customer_revenue, returning_revenue, returning_revenue/total_revenue])
 
     # by quarter
     orders_by_q = defaultdict(list)
@@ -136,14 +138,15 @@ def main():
 
     with open("AMZ Returning vs New Customers - Quarterly.csv", 'w') as csvfile:
         writer = csv.writer(csvfile)
-        writer.writerow(["Quarter", "Order Count", "Unique Customers", "Returning Customers", "Total Sales", "Returning Customer Sales"])
+        writer.writerow(["Quarter", "Order Count", "New Customers", "Returning Customers", "Unique Customers", "Repeat customers as % of toal", "Total Sales", "New Customer Sales", "Returning Customer Sales", "Returning Sales %"])
         for q, orders_list in orders_by_q.items():
             total_revenue = sum([o.cost() for o in orders_list])
             returning_revenue = sum([o.cost() for o in orders_list if o.is_returning])
+            new_customer_revenue = sum([o.cost() for o in orders_list if not o.is_returning])
             unique_customers = set([o.customer_id for o in orders_list])
             first_time_buyers = len([o for o in orders_list if not o.is_returning])
             return_buyers = len([o for o in orders_list if o.is_returning])
-            writer.writerow([q, len(orders_list), len(unique_customers), return_buyers, total_revenue, returning_revenue])
+            writer.writerow([q, len(orders_list), first_time_buyers, return_buyers, len(unique_customers), return_buyers / len(unique_customers), total_revenue, new_customer_revenue, returning_revenue, returning_revenue/total_revenue])
 
 
 if __name__ == '__main__':
