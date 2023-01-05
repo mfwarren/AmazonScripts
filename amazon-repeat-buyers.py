@@ -6,10 +6,12 @@
 # rename the file to match the format 'amazon-fulfilled-report-{year}-{month:02d}.csv'
 
 # run the script: python amazon-repeat-buyers.py
-# copy/paste the output into spreadsheet for further work
+# it creates daily/monthly/quarterly csv files with the data
 
 import csv
 from collections import defaultdict
+from datetime import datetime
+
 
 count = 0
 customers = set()
@@ -59,7 +61,6 @@ def main():
     # important to load this in time order
     for year in [2021, 2022]:
         for month in range(1, 13):
-            print(f"amazon-fulfilled-report-{year}-{month:02d}.csv")
             try:
                 with open(
                     f"amazon-fulfilled-report-{year}-{month:02d}.csv",
@@ -95,20 +96,55 @@ def main():
             except FileNotFoundError:
                 continue
 
-    # by  month
+    # by day
+    orders_by_day = defaultdict(list)
+    for name, order in orders.items():
+        orders_by_day[order.order_date[:10]].append(order)
+    with open("AMZ Returning vs New Customers - Daily.csv", 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["Date", "Order Count", "Unique Customers", "Returning Customers", "Total Sales", "Returning Customer Sales"])
+        for date, orders_list in orders_by_day.items():
+            total_revenue = sum([o.cost() for o in orders_list])
+            returning_revenue = sum([o.cost() for o in orders_list if o.is_returning])
+            unique_customers = set([o.customer_id for o in orders_list])
+            first_time_buyers = len([o for o in orders_list if not o.is_returning])
+            return_buyers = len([o for o in orders_list if o.is_returning])
+            writer.writerow([date, len(orders_list), len(unique_customers), return_buyers, total_revenue, returning_revenue])
+
+    # by month
     orders_by_month = defaultdict(list)
     for name, order in orders.items():
         orders_by_month[order.order_date[:7]].append(order)
 
-    print(f"Month, Order Count, Unique Customers, Returning Customers, Total Sales, Returning Customer Sales")
+    with open("AMZ Returning vs New Customers - Monthly.csv", 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["Date", "Order Count", "Unique Customers", "Returning Customers", "Total Sales", "Returning Customer Sales"])
+        for month, orders_list in orders_by_month.items():
+            total_revenue = sum([o.cost() for o in orders_list])
+            returning_revenue = sum([o.cost() for o in orders_list if o.is_returning])
+            unique_customers = set([o.customer_id for o in orders_list])
+            first_time_buyers = len([o for o in orders_list if not o.is_returning])
+            return_buyers = len([o for o in orders_list if o.is_returning])
+            writer.writerow([month, len(orders_list), len(unique_customers), return_buyers, total_revenue, returning_revenue])
 
-    for month, orders in orders_by_month.items():
-        total_revenue = sum([o.cost() for o in orders])
-        returning_revenue = sum([o.cost() for o in orders if o.is_returning])
-        unique_customers = set([o.customer_id for o in orders])
-        first_time_buyers = len([o for o in orders if not o.is_returning])
-        return_buyers = len([o for o in orders if o.is_returning])
-        print(f"{month}, {len(orders)}, {len(unique_customers)}, {return_buyers}, {total_revenue}, {returning_revenue}")
+    # by quarter
+    orders_by_q = defaultdict(list)
+    for name, order in orders.items():
+        order_date = datetime.fromisoformat(order.order_date[:10])
+        quarter_of_the_year = f'{order_date.year}Q{(order_date.month-1)//3+1}'
+        orders_by_q[quarter_of_the_year].append(order)
+
+    with open("AMZ Returning vs New Customers - Quarterly.csv", 'w') as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["Quarter", "Order Count", "Unique Customers", "Returning Customers", "Total Sales", "Returning Customer Sales"])
+        for q, orders_list in orders_by_q.items():
+            total_revenue = sum([o.cost() for o in orders_list])
+            returning_revenue = sum([o.cost() for o in orders_list if o.is_returning])
+            unique_customers = set([o.customer_id for o in orders_list])
+            first_time_buyers = len([o for o in orders_list if not o.is_returning])
+            return_buyers = len([o for o in orders_list if o.is_returning])
+            writer.writerow([q, len(orders_list), len(unique_customers), return_buyers, total_revenue, returning_revenue])
+
 
 if __name__ == '__main__':
     main()
